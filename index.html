@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Construction Estimating Calculator</title>
+  <title>AI Construction Estimating Calculator</title>
   <style>
     :root {
       --border: #d0d7de;
@@ -100,7 +100,7 @@
     </section>
 
     <div class="header">
-      <div class="title">Construction Estimating Calculator</div>
+      <div class="title">AI Construction Estimating Calculator</div>
       <div class="controls">
         <label for="currencySel" class="hint">Currency:</label>
         <select id="currencySel" aria-label="Currency">
@@ -126,6 +126,7 @@
     <div style="margin-top: 20px;">
       <button class="btn" onclick="exportToXLSX()">Export to XLSX</button>
       <button class="btn secondary" onclick="exportToPDF()">Download PDF</button>
+      <button class="btn" onclick="suggestCosts()">Suggest AI Costs</button>
     </div>
   </div>
 
@@ -142,8 +143,8 @@
           { name: "Backfilling & Compaction", unit: "cu.m" },
           { name: "Grading & Leveling", unit: "sq.m" },
           { name: "Formwork & Scaffolding", unit: "sq.m" },
-          { name: "Rebars", unit: "kg" }, // Removed "Fabrication & Installation"
-          { name: "Structural Steel Works", unit: "lump sum" }, // Moved here, no indent
+          { name: "Rebars", unit: "kg" },
+          { name: "Structural Steel Works", unit: "lump sum" },
           { name: "Concrete Pouring – Foundations", unit: "cu.m" },
           { name: "Concrete Pouring – Columns/Beams/Slabs", unit: "cu.m" },
           { name: "Masonry Wall Construction", unit: "sq.m" },
@@ -245,6 +246,16 @@
       const grandTotalEl = $("#grandTotal");
       const grandSymbolEl = $("#grandSymbol");
       const currencySel = $("#currencySel");
+
+      // Sample cost data (can be expanded or fetched via API)
+      const costSuggestions = {
+        "Site Clearing & Grubbing": { material: 50, labor: 30 },
+        "Excavation": { material: 20, labor: 15 },
+        "Rebars": { material: 1.5, labor: 1 },
+        "Structural Steel Works": { material: 1000, labor: 500 },
+        "Concrete Pouring – Foundations": { material: 100, labor: 50 }
+        // Add more as needed
+      };
 
       function fmt(n, dec = 2) {
         return Number(n).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
@@ -420,6 +431,19 @@
         recalc();
       };
 
+      window.suggestCosts = function() {
+        $$(".panel.active tbody tr").forEach(tr => {
+          const scopeInput = $$("input", tr)[0];
+          const scope = scopeInput.value;
+          if (costSuggestions[scope]) {
+            $$("input", tr)[2].value = costSuggestions[scope].material || "";
+            $$("input", tr)[3].value = costSuggestions[scope].labor || "";
+            recalc(); // Recalculate totals after suggestion
+          }
+        });
+        alert("AI cost suggestions applied where available!");
+      };
+
       window.exportToXLSX = function() {
         console.log("Export to XLSX started");
         if (typeof XLSX === 'undefined') {
@@ -437,7 +461,7 @@
           "Prepared By": $("#preparedBy").value || "N/A"
         };
         const coverData = [
-          ["Construction Estimating Calculator"],
+          ["AI Construction Estimating Calculator"],
           [], ...Object.entries(projectInfo).map(([key, value]) => [key, value]),
           [], ["Currency", currencySel.options[currencySel.selectedIndex].text]
         ];
@@ -479,7 +503,7 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.setFontSize(12);
-        doc.text("Construction Estimating Calculator", 10, 10);
+        doc.text("AI Construction Estimating Calculator", 10, 10);
         doc.text("Project Information", 10, 20);
         const projectInfo = {
           "Project Name": $("#projectName").value || "N/A",
